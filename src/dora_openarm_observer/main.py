@@ -114,7 +114,8 @@ def main():
     observation["camera_ceiling"] = None
     episode_number = 0
     last_phase_classifier_result = None
-    last_task_prompt = ""
+    last_task_prompt = None   # None until UI explicitly sets one
+    last_command = ""
     for event in node:
         if event["type"] != "INPUT":
             continue
@@ -128,6 +129,7 @@ def main():
             metadata = {
                 "episode_number": episode_number,
                 "timestamp": time.time_ns(),
+                "command": last_command,
             }
             arrow_observation = _build_output(
                 observation, last_phase_classifier_result, last_task_prompt, metadata
@@ -138,8 +140,8 @@ def main():
                 metadata,
             )
         elif event_id == "command":
-            command = event["value"][0].as_py()
-            if command == "start":
+            last_command = event["value"][0].as_py()
+            if last_command == "start":
                 episode_number = event["metadata"].get("episode_number", 0)
         elif event_id == "phase_classifier_result":
             last_phase_classifier_result = event["value"]
